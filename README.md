@@ -121,8 +121,7 @@ cp .env.example .env
 ### 3. Run with Docker Compose
 
 ```bash
-cd deployment
-docker compose up --build
+docker compose -f deployment/docker-compose.yml up --build
 ```
 
 The application will be available at:
@@ -141,6 +140,7 @@ psql -U postgres -c "CREATE DATABASE eldercare360;"
 **Backend:**
 ```bash
 cd backend
+export JWT_SECRET="$(openssl rand -base64 48)"
 mvn spring-boot:run
 ```
 
@@ -186,6 +186,8 @@ The platform uses clearly labelled synthetic data for demonstration.
 
 See `.env.example` for all required variables.
 
+Copy `.env.example` to `.env` before running Docker Compose. `JWT_SECRET` must be set; the application intentionally has no built-in production signing key.
+
 Key variables:
 
 | Variable | Description |
@@ -207,7 +209,7 @@ cd backend && mvn test
 
 **OCR Service:**
 ```bash
-cd ocr-service && pytest tests/ -v
+cd ocr-service && pip install -r requirements-dev.txt && pytest tests/ -v
 ```
 
 **Frontend:**
@@ -252,7 +254,7 @@ Key endpoints:
 2. **SMS/WhatsApp** delivery is not implemented. Emergency contacts are notified via in-app notifications only.
 3. **OCR accuracy** depends on Tesseract and scan quality. All extracted fields require manual verification.
 4. **OCR service** requires Tesseract to be installed on the host or Docker container.
-5. **This is a hackathon demonstration.** Use synthetic data only. Do not store real patient health information.
+5. **This is a hackathon demonstration.** Use synthetic data only. Do not store real patient health information. Free hosting plans may use ephemeral storage and sleep when idle; uploaded documents can be lost.
 
 ---
 

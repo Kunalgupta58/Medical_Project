@@ -48,7 +48,7 @@ spring:
 
 application:
   jwt:
-    secret: ${JWT_SECRET:eldercare360-super-secret-key-for-jwt-signing-must-be-at-least-256-bits-long}
+    secret: ${JWT_SECRET}
     expiration: 86400000  # 24 hours
   document-storage:
     path: ${DOCUMENT_STORAGE_PATH:./uploads/medical-documents}

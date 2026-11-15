@@ -207,12 +207,15 @@ def extract_fields(text: str) -> dict:
         (r"\b(weekly|once\s+a\s+week)\b", "Weekly"),
         (r"\b(as\s+needed|PRN|prn|SOS|sos)\b", "As needed"),
     ]
+    frequency_match = None
     for pat, label in freq_patterns:
         m = re.search(pat, text, re.IGNORECASE)
-        if m:
-            value = label if label else m.group(1)
-            frequency = _found(value, m.group(0))
-            break
+        if m and (frequency_match is None or m.start() < frequency_match[0].start()):
+            frequency_match = (m, label)
+    if frequency_match:
+        match, label = frequency_match
+        value = label if label else match.group(1)
+        frequency = _found(value, match.group(0))
 
     # ── Timing ────────────────────────────────────────────────────────────────
     timing = _uncertain("Could not confidently extract timing. Please verify manually.")
