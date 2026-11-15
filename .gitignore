@@ -1,0 +1,44 @@
+# Secrets — never commit
+.env
+*.env.local
+*.env.production
+
+# Java
+target/
+*.class
+*.jar
+!**/test*.jar
+
+# Node
+node_modules/
+dist/
+.vite/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+venv/
+.venv/
+.pytest_cache/
+
+# Document uploads (never commit real medical documents)
+uploads/
+test-uploads/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Docker local overrides
+docker-compose.override.yml

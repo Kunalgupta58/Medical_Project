@@ -1,0 +1,89 @@
+spring:
+  application:
+    name: eldercare-360
+
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/eldercare360}
+    username: ${DATABASE_USERNAME:postgres}
+    password: ${DATABASE_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 30000
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        default_schema: public
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    validate-on-migrate: true
+
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 20MB
+      max-request-size: 25MB
+
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+application:
+  jwt:
+    secret: ${JWT_SECRET:eldercare360-super-secret-key-for-jwt-signing-must-be-at-least-256-bits-long}
+    expiration: 86400000  # 24 hours
+  document-storage:
+    path: ${DOCUMENT_STORAGE_PATH:./uploads/medical-documents}
+  ocr-service:
+    url: ${OCR_SERVICE_URL:http://localhost:8001}
+  frontend:
+    url: ${FRONTEND_URL:http://localhost:5173}
+  email:
+    enabled: ${EMAIL_ENABLED:false}
+
+server:
+  port: ${PORT:8080}
+  error:
+    include-message: on_param
+    include-binding-errors: on_param
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+
+logging:
+  level:
+    com.eldercare: INFO
+    org.springframework.security: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
