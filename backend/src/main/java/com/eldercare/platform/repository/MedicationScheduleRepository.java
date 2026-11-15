@@ -5,6 +5,7 @@ import com.eldercare.platform.enums.DoseStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
+import org.springframework.data.repository.query.Param;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -30,7 +31,22 @@ public interface MedicationScheduleRepository extends JpaRepository<MedicationSc
            "AND s.scheduledDatetime = :dt")
     Optional<MedicationSchedule> findByMedicationIdAndScheduledDatetime(UUID medicationId, Instant dt);
 
-    @Query("SELECT s FROM MedicationSchedule s WHERE s.status = 'PENDING' " +
+    @Query("SELECT s.scheduledDatetime FROM MedicationSchedule s WHERE s.medication.id = :medicationId " +
+           "AND s.scheduledDatetime >= :from AND s.scheduledDatetime < :to")
+    List<Instant> findScheduledDatetimesByMedicationIdAndRange(
+            @Param("medicationId") UUID medicationId,
+            @Param("from") Instant from,
+            @Param("to") Instant to);
+
+    @Query("SELECT s FROM MedicationSchedule s JOIN FETCH s.medication JOIN FETCH s.elderlyUser " +
+           "WHERE s.status = 'PENDING' " +
+           "AND s.scheduledDatetime >= :from AND s.scheduledDatetime < :to")
+    List<MedicationSchedule> findPendingReminders(
+            @Param("from") Instant from,
+            @Param("to") Instant to);
+
+    @Query("SELECT s FROM MedicationSchedule s JOIN FETCH s.medication JOIN FETCH s.elderlyUser " +
+           "WHERE s.status = 'PENDING' " +
            "AND s.scheduledDatetime < :threshold AND s.escalationSent = false")
     List<MedicationSchedule> findUnconfirmedForEscalation(Instant threshold);
 

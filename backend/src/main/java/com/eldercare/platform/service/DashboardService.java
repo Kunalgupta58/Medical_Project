@@ -54,10 +54,14 @@ public class DashboardService {
         double adherence = scheduled7 > 0 ? (double) taken7 / scheduled7 * 100 : 0;
 
         // Weekly chart data (last 7 days)
+        Map<LocalDate, List<MedicationSchedule>> dosesByDay = scheduleRepository
+                .findByPeriod(eid, weekAgo, today)
+                .stream()
+                .collect(Collectors.groupingBy(MedicationSchedule::getScheduledDate));
         List<Map<String, Object>> weeklyAdherence = new ArrayList<>();
         for (int i = 6; i >= 0; i--) {
             LocalDate day = today.minusDays(i);
-            List<MedicationSchedule> dayDoses = scheduleRepository.findByElderlyUserIdAndScheduledDate(eid, day);
+            List<MedicationSchedule> dayDoses = dosesByDay.getOrDefault(day, List.of());
             Map<String, Object> entry = new LinkedHashMap<>();
             entry.put("date", day.toString());
             entry.put("scheduled", dayDoses.size());

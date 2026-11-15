@@ -4,7 +4,7 @@ import Alert from '../../components/ui/Alert'
 import Spinner from '../../components/ui/Spinner'
 import { AlertCircle, CheckCircle, Upload } from 'lucide-react'
 
-export default function OcrVerifyPanel({ doc, onClose }) {
+export default function OcrVerifyPanel({ onClose }) {
   const [result, setResult]   = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError]     = useState('')
@@ -95,7 +95,7 @@ export default function OcrVerifyPanel({ doc, onClose }) {
                       <p className="text-xs text-amber-600 mb-2">{field.uncertainty_reason}</p>
                     )}
                     {field.source_text && !isUncertain && (
-                      <p className="text-xs text-gray-400 mb-1">Source: "{field.source_text}"</p>
+                      <p className="text-xs text-gray-400 mb-1">Source: &quot;{field.source_text}&quot;</p>
                     )}
                     <input
                       className="input-field text-sm"

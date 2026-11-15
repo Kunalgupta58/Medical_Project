@@ -43,12 +43,7 @@ public class MedicationReminderScheduler {
     public void generateTomorrowSchedules() {
         log.info("Generating medication schedules for tomorrow");
         LocalDate tomorrow = LocalDate.now().plusDays(1);
-        List<Medication> activeMeds = medicationRepository.findAll()
-                .stream()
-                .filter(Medication::isActive)
-                .filter(m -> m.getEndDate() == null || !m.getEndDate().isBefore(tomorrow))
-                .filter(m -> !m.getStartDate().isAfter(tomorrow))
-                .toList();
+        List<Medication> activeMeds = medicationRepository.findAllActiveForDate(tomorrow);
 
         for (Medication med : activeMeds) {
             try {
@@ -70,13 +65,7 @@ public class MedicationReminderScheduler {
         Instant now = Instant.now();
         Instant windowEnd = now.plusSeconds(300);
 
-        // Find doses scheduled in the next 5 minutes that are still PENDING
-        List<MedicationSchedule> pendingDoses = scheduleRepository.findAll()
-                .stream()
-                .filter(s -> s.getStatus() == DoseStatus.PENDING)
-                .filter(s -> !s.getScheduledDatetime().isBefore(now)
-                        && s.getScheduledDatetime().isBefore(windowEnd))
-                .toList();
+        List<MedicationSchedule> pendingDoses = scheduleRepository.findPendingReminders(now, windowEnd);
 
         for (MedicationSchedule dose : pendingDoses) {
             try {

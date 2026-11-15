@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { CheckCircle, Clock, XCircle, SkipForward, Info } from 'lucide-react'
+import { CheckCircle, Clock, SkipForward, Info } from 'lucide-react'
 import { medicationsApi } from '../../api/medications'
 import Spinner from '../../components/ui/Spinner'
 import Alert from '../../components/ui/Alert'
@@ -79,13 +79,13 @@ export default function SchedulePage() {
   return (
     <div className="space-y-6">
       {toast && (
-        <div className="fixed top-4 right-4 z-50 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-lg text-sm animate-pulse">
+        <div role="status" aria-live="polite" className="fixed top-4 right-4 z-50 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-lg text-sm animate-pulse">
           {toast}
         </div>
       )}
 
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Today's Medication Schedule</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Today&apos;s Medication Schedule</h1>
         <p className="text-gray-500 text-sm mt-0.5">
           {new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
           {' — '}{doses.length} dose{doses.length !== 1 ? 's' : ''} scheduled
@@ -123,8 +123,8 @@ export default function SchedulePage() {
         <p className="text-sm text-gray-600 mb-4">
           You can optionally record why you are skipping this dose. For missed-dose decisions, please consult your prescribing doctor.
         </p>
-        <label className="label">Reason (optional)</label>
-        <input className="input-field mb-4" value={skipReason} onChange={e => setSkipReason(e.target.value)}
+        <label className="label" htmlFor="skip-dose-reason">Reason (optional)</label>
+        <input id="skip-dose-reason" className="input-field mb-4" value={skipReason} onChange={e => setSkipReason(e.target.value)}
           placeholder="e.g. Side effects, already took alternate…" />
         <div className="flex gap-3 justify-end">
           <button className="btn-secondary" onClick={() => { setSkipModal(null); setSkipReason('') }}>Cancel</button>

@@ -215,6 +215,7 @@ cd ocr-service && pip install -r requirements-dev.txt && pytest tests/ -v
 **Frontend:**
 ```bash
 cd frontend && npm test
+npm run lint
 ```
 
 ---

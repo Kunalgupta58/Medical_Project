@@ -1,22 +1,15 @@
-import { useState } from 'react'
 import { useAuth } from '../../context/AuthContext'
-import { User, Shield, LogOut } from 'lucide-react'
+import { Shield, LogOut } from 'lucide-react'
 import Alert from '../../components/ui/Alert'
 import { useNavigate } from 'react-router-dom'
 
 export default function ProfilePage() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
-  const [toast, setToast] = useState('')
-
-  const showToast = (m) => { setToast(m); setTimeout(() => setToast(''), 3000) }
-
   const handleLogout = () => { logout(); navigate('/') }
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      {toast && <div className="fixed top-4 right-4 z-50 bg-gray-900 text-white px-5 py-3 rounded-xl shadow-lg text-sm">{toast}</div>}
-
       <h1 className="text-2xl font-bold text-gray-900">Profile & Settings</h1>
 
       {/* Profile card */}

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Users, Mail, CheckCircle, Trash2, Plus } from 'lucide-react'
 import { relationshipsApi } from '../../api/caregiver'
 import { useAuth } from '../../context/AuthContext'
@@ -20,7 +20,7 @@ export default function CareTeamPage() {
 
   const showToast = (m) => { setToast(m); setTimeout(() => setToast(''), 3000) }
 
-  const load = () => {
+  const load = useCallback(() => {
     setLoading(true)
     Promise.all([
       relationshipsApi.getAll(),
@@ -29,9 +29,9 @@ export default function CareTeamPage() {
       .then(([r, inv]) => { setRels(r.data); setInvites(inv.data); setLoadError('') })
       .catch(() => setLoadError('Failed to load care team. Please refresh.'))
       .finally(() => setLoading(false))
-  }
+  }, [isElderly])
 
-  useEffect(() => { load() }, [])
+  useEffect(() => { load() }, [load])
 
   const handleRevoke = async (id) => {
     try { await relationshipsApi.revoke(id); load(); showToast('Access revoked') }

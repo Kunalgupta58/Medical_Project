@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { AlertTriangle, Phone, Plus, Shield } from 'lucide-react'
+import { AlertTriangle, Phone, Plus } from 'lucide-react'
 import { emergencyApi } from '../../api/caregiver'
 import Modal from '../../components/ui/Modal'
 import Alert from '../../components/ui/Alert'
@@ -9,6 +9,7 @@ export default function EmergencyPage() {
   const [contacts, setContacts] = useState([])
   const [sosResult, setSosResult] = useState(null)
   const [loading, setLoading]   = useState(false)
+  const [error, setError]       = useState('')
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [notes, setNotes]       = useState('')
   const [isDemo, setIsDemo]     = useState(true)
@@ -18,7 +19,7 @@ export default function EmergencyPage() {
   useEffect(() => {
     emergencyApi.getContacts()
       .then(r => setContacts(r.data))
-      .catch(() => {})
+      .catch(() => setError('Failed to load emergency contacts'))
   }, [])
 
   const handleSOS = async () => {
@@ -40,7 +41,10 @@ export default function EmergencyPage() {
       setContacts(c => [...c, data])
       setAddOpen(false)
       setNewContact({ name: '', phone: '', email: '', relationship: '', isPrimary: false })
-    } catch {}
+      setError('')
+    } catch (e) {
+      setError(e?.response?.data?.message || 'Failed to add emergency contact')
+    }
   }
 
   return (
@@ -52,6 +56,7 @@ export default function EmergencyPage() {
 
       <Alert variant="info"
         message="The SOS button notifies all connected caregivers and emergency contacts via in-app notifications. External SMS/WhatsApp/email delivery requires additional configuration." />
+      {error && <Alert variant="error" message={error} />}
 
       {/* Demo mode toggle */}
       <div className="card flex items-center justify-between">

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Pill, FileText, Calendar, Users, Bell, TrendingUp, CheckCircle, XCircle, Clock } from 'lucide-react'
+import { Pill, FileText, Calendar, Users, Bell, TrendingUp, CheckCircle, XCircle } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts'
 import { dashboardApi } from '../../api/dashboard'
 import { useAuth } from '../../context/AuthContext'
@@ -11,7 +11,7 @@ import { fmt } from '../../utils/format'
 const DOSE_COLORS = { taken: '#16a34a', pending: '#d97706', skipped: '#6b7280', unconfirmed: '#dc2626' }
 
 export default function DashboardPage() {
-  const { user, isElderly } = useAuth()
+  const { user } = useAuth()
   const [data, setData]       = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError]     = useState('')
@@ -85,7 +85,7 @@ export default function DashboardPage() {
 
         {/* Today's dose pie */}
         <div className="card">
-          <h2 className="font-semibold text-gray-900 mb-4">Today's Dose Status</h2>
+          <h2 className="font-semibold text-gray-900 mb-4">Today&apos;s Dose Status</h2>
           {pieData.length > 0 ? (
             <ResponsiveContainer width="100%" height={220}>
               <PieChart>

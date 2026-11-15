@@ -23,7 +23,6 @@ export default function UploadForm({ onUploaded, onCancel }) {
   const [form, setForm]       = useState({ title: '', category: 'PRESCRIPTION', documentDate: '', doctorName: '', hospitalName: '', notes: '' })
   const [error, setError]     = useState('')
   const [loading, setLoading] = useState(false)
-  const [progress, setProgress] = useState(0)
   const inputRef = useRef()
 
   const onFileChange = (e) => {

@@ -35,7 +35,9 @@ export default function NotificationsPage() {
     try {
       const { data } = await notificationsApi.markRead(id)
       setNotifs(ns => ns.map(n => n.id === id ? { ...n, ...data } : n))
-    } catch {}
+    } catch {
+      setError('Failed to mark notification as read')
+    }
   }
 
   const markAllRead = async () => {

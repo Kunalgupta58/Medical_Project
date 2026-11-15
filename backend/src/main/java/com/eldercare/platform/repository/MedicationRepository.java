@@ -6,6 +6,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
+import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -24,6 +25,10 @@ public interface MedicationRepository extends JpaRepository<Medication, UUID> {
            "AND m.active = true AND m.startDate <= :today " +
            "AND (m.endDate IS NULL OR m.endDate >= :today)")
     List<Medication> findActiveMedicationsForDate(UUID elderlyUserId, LocalDate today);
+
+    @Query("SELECT m FROM Medication m JOIN FETCH m.elderlyUser WHERE m.active = true " +
+           "AND m.startDate <= :date AND (m.endDate IS NULL OR m.endDate >= :date)")
+    List<Medication> findAllActiveForDate(@Param("date") LocalDate date);
 
     long countByElderlyUserIdAndActiveTrue(UUID elderlyUserId);
 }

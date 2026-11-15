@@ -26,7 +26,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.*;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -98,7 +100,7 @@ public class MedicationService {
     public MedicationResponse updateMedication(UUID id, MedicationRequest req, UserPrincipal principal) {
         Medication med = medicationRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Medication", id));
-        checkAccess(med.getElderlyUser().getId(), principal);
+        checkWriteAccess(med.getElderlyUser().getId(), principal);
 
         med.setName(req.getName());
         med.setGenericName(req.getGenericName());
@@ -128,7 +130,7 @@ public class MedicationService {
     public void deleteMedication(UUID id, UserPrincipal principal) {
         Medication med = medicationRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Medication", id));
-        checkAccess(med.getElderlyUser().getId(), principal);
+        checkWriteAccess(med.getElderlyUser().getId(), principal);
         med.setActive(false);
         medicationRepository.save(med);
     }
@@ -149,7 +151,7 @@ public class MedicationService {
     public DoseResponse markDoseTaken(UUID doseId, UserPrincipal principal) {
         MedicationSchedule schedule = scheduleRepository.findById(doseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Dose", doseId));
-        checkAccess(schedule.getElderlyUser().getId(), principal);
+        checkWriteAccess(schedule.getElderlyUser().getId(), principal);
 
         if (schedule.getStatus() == DoseStatus.TAKEN) {
             throw new BadRequestException("This dose has already been marked as taken");
@@ -167,7 +169,7 @@ public class MedicationService {
     public DoseResponse snoozeDose(UUID doseId, UserPrincipal principal) {
         MedicationSchedule schedule = scheduleRepository.findById(doseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Dose", doseId));
-        checkAccess(schedule.getElderlyUser().getId(), principal);
+        checkWriteAccess(schedule.getElderlyUser().getId(), principal);
 
         if (schedule.getSnoozeCount() >= 3) {
             throw new BadRequestException("Maximum snooze limit (3) reached for this dose");
@@ -184,7 +186,7 @@ public class MedicationService {
     public DoseResponse skipDose(UUID doseId, String reason, UserPrincipal principal) {
         MedicationSchedule schedule = scheduleRepository.findById(doseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Dose", doseId));
-        checkAccess(schedule.getElderlyUser().getId(), principal);
+        checkWriteAccess(schedule.getElderlyUser().getId(), principal);
 
         schedule.setStatus(DoseStatus.SKIPPED);
         schedule.setSkipReason(reason);
@@ -204,23 +206,22 @@ public class MedicationService {
                 ? medication.getEndDate() : to;
 
         ZoneId zone = ZoneId.systemDefault();
+        Instant rangeStart = start.atStartOfDay(zone).toInstant();
+        Instant rangeEnd = end.plusDays(1).atStartOfDay(zone).toInstant();
+        Set<Instant> existingTimes = new HashSet<>(
+                scheduleRepository.findScheduledDatetimesByMedicationIdAndRange(
+                        medication.getId(), rangeStart, rangeEnd));
         List<MedicationSchedule> toCreate = new ArrayList<>();
 
         for (LocalDate date = start; !date.isAfter(end); date = date.plusDays(1)) {
             for (LocalTime time : times) {
                 Instant scheduledInstant = date.atTime(time).atZone(zone).toInstant();
 
-                // Idempotent: skip if already exists
-                boolean exists = scheduleRepository
-                        .findByMedicationIdAndScheduledDatetime(medication.getId(), scheduledInstant)
-                        .isPresent();
-
-                if (!exists) {
-                    final LocalDate finalDate = date;
+                if (existingTimes.add(scheduledInstant)) {
                     toCreate.add(MedicationSchedule.builder()
                             .medication(medication)
                             .elderlyUser(medication.getElderlyUser())
-                            .scheduledDate(finalDate)
+                            .scheduledDate(date)
                             .scheduledTime(time)
                             .scheduledDatetime(scheduledInstant)
                             .status(DoseStatus.PENDING)
@@ -278,6 +279,9 @@ public class MedicationService {
         if (user.getRole() == UserRole.ELDERLY) {
             return user;
         }
+        if (user.getRole() == UserRole.ADMIN) {
+            throw new UnauthorizedException("Admins can view but cannot modify patient data");
+        }
         if (requestedId != null) {
             User elderlyUser = userRepository.findById(requestedId)
                     .orElseThrow(() -> new ResourceNotFoundException("User", requestedId));
@@ -297,6 +301,24 @@ public class MedicationService {
             }
         } else if (user.getRole() == UserRole.ADMIN) {
             // Admin can read but not modify patient data
+        } else {
+            boolean hasAccess = relationshipRepository
+                    .existsByElderlyUserIdAndRelatedUserIdAndActiveTrue(elderlyUserId, principal.getId());
+            if (!hasAccess) {
+                throw new UnauthorizedException("No authorized relationship with this profile");
+            }
+        }
+    }
+
+    private void checkWriteAccess(UUID elderlyUserId, UserPrincipal principal) {
+        User user = userRepository.findById(principal.getId()).orElseThrow();
+        if (user.getRole() == UserRole.ADMIN) {
+            throw new UnauthorizedException("Admins can view but cannot modify patient data");
+        }
+        if (user.getRole() == UserRole.ELDERLY) {
+            if (!user.getId().equals(elderlyUserId)) {
+                throw new UnauthorizedException("Access denied to this profile");
+            }
         } else {
             boolean hasAccess = relationshipRepository
                     .existsByElderlyUserIdAndRelatedUserIdAndActiveTrue(elderlyUserId, principal.getId());

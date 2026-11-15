@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react'
-import { Upload, FileText, Search, Download, Trash2, Eye, Filter } from 'lucide-react'
-import { vaultApi, ocrApi } from '../../api/vault'
+import { Upload, FileText, Search, Download, Trash2, Eye } from 'lucide-react'
+import { vaultApi } from '../../api/vault'
 import Modal from '../../components/ui/Modal'
 import ConfirmDialog from '../../components/ui/ConfirmDialog'
 import Alert from '../../components/ui/Alert'
@@ -28,7 +28,7 @@ export default function VaultPage() {
   const load = () => {
     setLoading(true)
     vaultApi.getAll()
-      .then(r => setDocs(r.data))
+      .then(r => { setDocs(r.data); setError('') })
       .catch(() => setError('Failed to load documents'))
       .finally(() => setLoading(false))
   }
@@ -41,8 +41,8 @@ export default function VaultPage() {
     if (!q) { load(); return }
     searchTimeout.current = setTimeout(() => {
       vaultApi.search(q)
-        .then(r => setDocs(r.data))
-        .catch(() => {})
+        .then(r => { setDocs(r.data); setError('') })
+        .catch(() => setError('Failed to search documents'))
     }, 400)
   }
 
@@ -123,7 +123,7 @@ export default function VaultPage() {
 
       {/* OCR verify modal */}
       <Modal open={!!ocrDoc} onClose={() => setOcrDoc(null)} title="OCR — Extract Prescription Text" size="xl">
-        {ocrDoc && <OcrVerifyPanel doc={ocrDoc} onClose={() => setOcrDoc(null)} />}
+        {ocrDoc && <OcrVerifyPanel onClose={() => setOcrDoc(null)} />}
       </Modal>
 
       {/* Preview modal */}
@@ -140,7 +140,6 @@ export default function VaultPage() {
 }
 
 function DocCard({ doc, onPreview, onDownload, onOcr, onDelete }) {
-  const ocr = doc.ocrStatus
   return (
     <div className="card flex gap-4">
       <div className="rounded-xl bg-primary-50 p-3 shrink-0">
