@@ -19,7 +19,13 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false)
   const [showPwd, setShowPwd] = useState(false)
 
-  const { register, handleSubmit, watch, formState: { errors } } = useForm({ defaultValues: { role: 'ELDERLY' } })
+  const { register, handleSubmit, setFocus, watch, formState: { errors } } = useForm({ defaultValues: { role: 'ELDERLY' } })
+
+  const onInvalid = (formErrors) => {
+    setError('Please correct the highlighted fields before continuing.')
+    const firstInvalidField = Object.keys(formErrors)[0]
+    if (firstInvalidField) setFocus(firstInvalidField)
+  }
 
   const onSubmit = async (data) => {
     setError('')
@@ -35,7 +41,17 @@ export default function RegisterPage() {
       })
       navigate('/dashboard')
     } catch (err) {
-      setError(err?.response?.data?.message || 'Registration failed. Please try again.')
+      const fieldErrors = Object.values(err?.response?.data?.errors ?? {}).filter(Boolean)
+      const message = err?.response?.data?.message
+      if (fieldErrors.length) {
+        setError(fieldErrors.join(' '))
+      } else if (message) {
+        setError(message)
+      } else if (!err?.response) {
+        setError('Could not reach the backend. Check your connection and try again.')
+      } else {
+        setError(`Registration failed (HTTP ${err.response.status}). Please try again.`)
+      }
     } finally {
       setLoading(false)
     }
@@ -54,7 +70,7 @@ export default function RegisterPage() {
 
         <Alert variant="error" message={error} dismissible />
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-4" noValidate>
+        <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-4 mt-4" noValidate>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="label">First name</label>
